@@ -1,0 +1,9 @@
+name: yolo-face-webcam
+channels:
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - "uniface[cpu]>=3.7.1,<4"
+      - "opencv-python>=4.9,<5"
