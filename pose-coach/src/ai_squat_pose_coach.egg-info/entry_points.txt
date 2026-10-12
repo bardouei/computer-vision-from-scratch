@@ -1,0 +1,2 @@
+[console_scripts]
+squat-coach = squat_coach.__main__:main

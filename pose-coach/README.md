@@ -1,1 +1,73 @@
+# AI Squat Pose Coach
 
+A modular Python application that counts squats from a webcam using MediaPipe Pose Landmarker and OpenCV.
+
+## Requirements
+
+- Python 3.10+ (use a Python/OS combination supported by MediaPipe)
+- Webcam and permission to use it
+- Internet access on first run (downloads the lite `.task` model)
+
+## Setup
+
+```bash
+python -m venv .venv
+source .venv/bin/activate       # macOS/Linux
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+## Run
+
+```bash
+python -m squat_coach
+# or: squat-coach
+# Other camera or local model:
+python -m squat_coach --camera 1 --model /path/to/pose_landmarker_lite.task
+```
+
+Stand sideways to the camera with the left leg visible. Press **Q** to exit. The status panel shows the repetition count, squat state, knee angle and feedback. The model is cached at `~/.cache/ai-squat-pose-coach/pose_landmarker_lite.task` by default.
+
+## Counting logic
+
+- **DOWN:** knee angle strictly below 100°.
+- **UP:** knee angle strictly above 160°.
+- A repetition is counted when the knee returns to **UP** after a **DOWN** detection.
+- Between these thresholds the state is **MOVING**.
+- If the pose is missing, counting state is preserved until tracking resumes.
+
+These are simple geometric thresholds, **not** a clinical or biomechanical technique assessment. Visibility and camera angle affect results. The left-side landmarks are used, matching the original implementation.
+
+## Files
+
+```text
+src/squat_coach/
+  __main__.py   CLI entrypoint
+  app.py        camera loop + inference orchestration
+  config.py     constants and landmark IDs
+  counter.py    repetition-counting state machine
+  geometry.py   pure angle/pixel helpers
+  model.py      MediaPipe model download and setup
+  overlay.py    OpenCV drawing
+  __init__.py
+ tests/         standard-library unittest tests
+ pyproject.toml package configuration
+ requirements.txt
+ .gitignore
+```
+
+## Tests
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+## Troubleshooting
+
+- **Camera unavailable:** allow camera access for Terminal/Python and try `--camera 1`.
+- **Model download error:** check connectivity or supply a local model through `--model`.
+- **Detection not stable:** move back so hip, knee and ankle are in frame, with sufficient lighting and a side view.
+
+## What changed from the single-file version?
+
+Logic was divided by responsibility, installation and CLI were added, the model cache is independent of the working directory, camera cleanup is explicit, and angle calculation gracefully handles degenerate points. No new pose assessment claims are introduced.
